@@ -261,6 +261,128 @@
             from { opacity: 0; }
             to { opacity: 1; }
         }
+
+        /* --- SLIDESHOW --- */
+        .slideshow-container {
+            position: relative;
+            max-width: 100%;
+            margin: auto;
+            background: #000;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+        .slide {
+            display: none;
+            width: 100%;
+        }
+
+        .slide.active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+
+        .slide img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .slide-nav {
+            position: absolute;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            z-index: 100;
+        }
+
+        .slide-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.5);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .slide-dot.active {
+            background: var(--accent-primary);
+            transform: scale(1.3);
+        }
+
+        /* --- BUCKET LIST --- */
+        .bucket-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .bucket-item {
+            background: linear-gradient(135deg, #2f81f7 0%, #da3633 100%);
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid var(--accent-gold);
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Permanent Marker';
+            text-align: center;
+            color: white;
+            font-size: 0.9rem;
+            position: relative;
+        }
+
+        .bucket-item:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(47, 129, 247, 0.8);
+        }
+
+        /* --- ACHIEVEMENTS --- */
+        .achievements-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .achievement {
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            opacity: 0.4;
+            filter: grayscale(1);
+        }
+
+        .achievement.unlocked {
+            opacity: 1;
+            filter: grayscale(0);
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 15px rgba(47, 129, 247, 0.6);
+            animation: unlockPulse 0.5s;
+        }
+
+        .achievement-icon {
+            font-size: 2rem;
+            margin-bottom: 5px;
+        }
+
+        .achievement-name {
+            font-family: 'Fira Code';
+            font-size: 0.75rem;
+            color: var(--accent-gold);
+        }
+
+        @keyframes unlockPulse {
+            0% { transform: scale(0.5); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
     </style>
 </head>
 <body>
@@ -314,7 +436,34 @@
         </div>
     </section>
 
-    <!-- FOOTER WITH BIRTHDAY MESSAGE -->
+    <!-- PHOTO SLIDESHOW -->
+    <section>
+        <h2>📸 AUTOMATIC SLIDESHOW</h2>
+        <div class="slideshow-container" id="slideshow-container">
+            <!-- Slides injected by JS -->
+            <div class="slide-nav" id="slide-nav">
+                <!-- Dots injected by JS -->
+            </div>
+        </div>
+    </section>
+
+    <!-- BUCKET LIST -->
+    <section>
+        <h2>🎯 BUCKET LIST - LET'S DO THIS!</h2>
+        <p style="text-align: center; margin-bottom: 20px; font-family: 'Fira Code';">Things we gotta do together this year</p>
+        <div class="bucket-grid" id="bucket-grid">
+            <!-- Injected by JS -->
+        </div>
+    </section>
+
+    <!-- ACHIEVEMENTS -->
+    <section>
+        <h2>🏆 ACHIEVEMENTS</h2>
+        <p style="text-align: center; margin-bottom: 20px; font-family: 'Fira Code';">Click around to unlock! You got this!</p>
+        <div class="achievements-container" id="achievements-container">
+            <!-- Injected by JS -->
+        </div>
+    </section>
     <section style="text-align: center; background: linear-gradient(135deg, #2f81f7 0%, #da3633 100%); border: 3px solid var(--accent-gold); padding: 100px 40px;">
         <h2 style="color: white; text-shadow: 3px 3px 6px rgba(0,0,0,0.8); font-size: 2.5rem;">🎉 HAPPY 19TH BIRTHDAY RAMEZ! 🎉</h2>
         <p style="font-size: 1.5rem; color: white; margin: 30px 0; font-family: 'Permanent Marker';">
@@ -734,6 +883,15 @@
                 0% { filter: hue-rotate(0deg); }
                 100% { filter: hue-rotate(360deg); }
             }
+            @keyframes pulse {
+                0%, 100% { transform: scale(1); }
+                50% { transform: scale(1.2); }
+            }
+            @keyframes spin {
+                0% { transform: rotateZ(0deg) scale(0); opacity: 0; }
+                50% { opacity: 1; }
+                100% { transform: rotateZ(360deg) scale(1); }
+            }
         `;
         const styleEl2 = document.createElement('style');
         styleEl2.textContent = moreStyles;
@@ -741,6 +899,224 @@
 
         // Initialize chaos
         addClickables();
+
+        // ===== ACHIEVEMENTS SYSTEM =====
+        const achievements = [
+            { id: 'clicker', icon: '🖱️', name: 'CLICKER', desc: 'Click 10 times' },
+            { id: 'photo_viewer', icon: '📸', name: 'VOYEUR', desc: 'View a photo' },
+            { id: 'roast_flipper', icon: '🔄', name: 'TRUTH SEEKER', desc: 'Flip a roast card' },
+            { id: 'heading_click', icon: '🎯', name: 'HEADHUNTER', desc: 'Click a heading' },
+            { id: 'envelope_opener', icon: '✉️', name: 'ENVELOPE MASTER', desc: 'Open envelope' },
+            { id: 'celebrate', icon: '🎊', name: 'PARTY ANIMAL', desc: 'Hit celebrate' },
+            { id: 'chaos_master', icon: '🤪', name: 'CHAOS MASTER', desc: 'Activate chaos mode' },
+            { id: 'joke_teller', icon: '😂', name: 'COMEDIAN', desc: 'Hear a joke' },
+            { id: 'all_photos', icon: '🖼️', name: 'STALKER', desc: 'View all photos' },
+            { id: 'all_roasts', icon: '💣', name: 'ROAST COLLECTOR', desc: 'Flip all roasts' },
+        ];
+
+        let unlockedAchievements = JSON.parse(localStorage.getItem('unlockedAchievements')) || [];
+        let clickCount = 0;
+
+        function unlockAchievement(id) {
+            if (!unlockedAchievements.includes(id)) {
+                unlockedAchievements.push(id);
+                localStorage.setItem('unlockedAchievements', JSON.stringify(unlockedAchievements));
+                renderAchievements();
+                showAchievementPopup(id);
+            }
+        }
+
+        const easterEggs = [
+            "Ramez's love life: NULL",
+            "Cringe level: MAXIMUM",
+            "Reject memes: UNLOCKED",
+            "Common sense: NOT FOUND",
+            "Bitches: 0",
+            "Rizz level: NEGATIVE",
+            "This man will die alone lol",
+            "Dating simulator: HARD MODE",
+            "Status: Forever single 😂",
+            "Touching grass: FAILED",
+            "Social skills: CORRUPTED FILE",
+            "Personality: DEVELOPER VERSION",
+            "Actually funny: FALSE",
+            "Will find love: [ERROR]",
+            "Ramez understood: UNLIKELY",
+        ];
+
+        function showAchievementPopup(id) {
+            try {
+                const ach = achievements.find(a => a.id === id);
+                if (!ach) return;
+                
+                const easterEgg = easterEggs[Math.floor(Math.random() * easterEggs.length)];
+                const roastsFlipped = document.querySelectorAll('.roast-card-wrapper.flipped').length;
+                
+                const popup = document.createElement('div');
+                popup.className = 'achievement-popup';
+                popup.style.cssText = 'position: fixed; top: 20px; right: 20px; background: linear-gradient(135deg, rgba(47, 129, 247, 0.2) 0%, rgba(218, 54, 51, 0.2) 100%); border: 3px solid var(--accent-primary); padding: 25px; border-radius: 15px; z-index: 10000; box-shadow: 0 0 50px rgba(47, 129, 247, 0.9), inset 0 0 20px rgba(241, 224, 90, 0.2); max-width: 300px; backdrop-filter: blur(10px); font-family: Fira Code; animation: slideIn 0.5s ease-out;';
+                
+                popup.innerHTML = '<div style="text-align: center;"><div style="font-size: 3rem; margin-bottom: 10px; animation: pulse 0.6s ease-out;">' + ach.icon + '</div><div style="font-size: 1.3rem; color: var(--accent-gold); font-weight: bold; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 5px;">⭐ UNLOCKED ⭐</div><div style="font-family: Permanent Marker; color: white; font-size: 1.2rem; margin-bottom: 3px;">' + ach.name + '</div><div style="font-size: 0.8rem; color: var(--text-color);">' + ach.desc + '</div><div style="margin-top: 15px; padding-top: 15px; border-top: 2px solid var(--accent-primary); font-size: 0.85rem; line-height: 1.8;"><div style="color: #2ea043;">Clicks: ' + clickCount + '</div><div style="color: #f1e05a;">Roasts Flipped: ' + roastsFlipped + '/' + roasts.length + '</div><div style="color: #2f81f7;">Unlocked: ' + unlockedAchievements.length + '/10</div><div style="color: #da3633; font-style: italic; margin-top: 10px;">"' + easterEgg + '"</div></div></div>';
+                
+                document.body.appendChild(popup);
+                playRandomSound();
+                
+                // 10% chance for spin animation
+                if (Math.random() < 0.1) {
+                    popup.style.animation = 'spin 0.6s ease-out';
+                }
+                
+                setTimeout(() => {
+                    popup.style.animation = 'fadeOut 0.5s ease-out';
+                    setTimeout(() => { if(popup.parentNode) popup.remove(); }, 500);
+                }, 4500);
+            } catch(e) {
+                console.error('Popup error:', e);
+            }
+        }
+
+        function renderAchievements() {
+            const container = document.getElementById('achievements-container');
+            container.innerHTML = '';
+            achievements.forEach(ach => {
+                const div = document.createElement('div');
+                div.className = 'achievement' + (unlockedAchievements.includes(ach.id) ? ' unlocked' : '');
+                div.title = ach.desc;
+                div.innerHTML = `<div class="achievement-icon">${ach.icon}</div><div class="achievement-name">${ach.name}</div>`;
+                container.appendChild(div);
+            });
+        }
+
+        // ===== PHOTO SLIDESHOW =====
+        let currentSlide = 0;
+        function initSlideshow() {
+            const container = document.getElementById('slideshow-container');
+            const navContainer = document.getElementById('slide-nav');
+            
+            photos.forEach((p, i) => {
+                const slide = document.createElement('div');
+                slide.className = 'slide' + (i === 0 ? ' active' : '');
+                const img = document.createElement('img');
+                img.src = p.src;
+                img.onerror = function() { this.src = 'https://via.placeholder.com/500?text=Loading'; };
+                img.onclick = (e) => {
+                    e.stopPropagation();
+                    openPhotoModal(p.src);
+                };
+                slide.appendChild(img);
+                container.appendChild(slide);
+
+                const dot = document.createElement('div');
+                dot.className = 'slide-dot' + (i === 0 ? ' active' : '');
+                dot.onclick = () => goToSlide(i);
+                navContainer.appendChild(dot);
+            });
+
+            setInterval(nextSlide, 4000);
+            unlockAchievement('envelope_opener');
+        }
+
+        function nextSlide() {
+            currentSlide = (currentSlide + 1) % photos.length;
+            goToSlide(currentSlide);
+        }
+
+        function goToSlide(n) {
+            currentSlide = n;
+            const slides = document.querySelectorAll('.slide');
+            const dots = document.querySelectorAll('.slide-dot');
+            slides.forEach(s => s.classList.remove('active'));
+            dots.forEach(d => d.classList.remove('active'));
+            slides[currentSlide].classList.add('active');
+            dots[currentSlide].classList.add('active');
+        }
+
+        // ===== BUCKET LIST =====
+        const bucketList = [
+            "🎮 Build a gaming PC together",
+            "🚗 Take a random road trip",
+            "🏔️ Go hiking & get lost",
+            "🍕 Try 10 new restaurants",
+            "🎬 Make a comedy video",
+            "🎸 Learn guitar badly",
+            "🏖️ Beach day madness",
+            "🎪 Go to a concert",
+            "🎯 Roast battle competition",
+            "🌙 Stargazing all-nighter"
+        ];
+
+        function initBucketList() {
+            const container = document.getElementById('bucket-grid');
+            bucketList.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'bucket-item';
+                div.textContent = item;
+                div.onclick = () => {
+                    div.style.opacity = '0.5';
+                    div.style.textDecoration = 'line-through';
+                    playRandomSound();
+                    celebration();
+                };
+                container.appendChild(div);
+            });
+        }
+
+        // ===== ACHIEVEMENT TRACKERS =====
+        document.addEventListener('click', () => {
+            clickCount++;
+            if (clickCount === 10) unlockAchievement('clicker');
+            if (clickCount === 50) unlockAchievement('clicker');
+        });
+
+        // Track photo viewing
+        const originalOpenPhotoModal = openPhotoModal;
+        openPhotoModal = function(src) {
+            originalOpenPhotoModal(src);
+            unlockAchievement('photo_viewer');
+            if (document.querySelectorAll('.photo-card img').length === document.querySelectorAll('.photo-modal-content img').length) {
+                unlockAchievement('all_photos');
+            }
+        };
+
+        // Track roast flipping
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.roast-card-wrapper')) {
+                unlockAchievement('roast_flipper');
+                const flipped = document.querySelectorAll('.roast-card-wrapper.flipped').length;
+                if (flipped === roasts.length) {
+                    unlockAchievement('all_roasts');
+                }
+            }
+            if (e.target.closest('h1, h2')) {
+                unlockAchievement('heading_click');
+            }
+        });
+
+        // Override functions to track achievements
+        const originalCelebration = celebration;
+        celebration = function() {
+            originalCelebration();
+            unlockAchievement('celebrate');
+        };
+
+        const originalCrazyMode = crazyMode;
+        crazyMode = function() {
+            originalCrazyMode();
+            unlockAchievement('chaos_master');
+        };
+
+        const originalRandomJoke = randomJoke;
+        randomJoke = function() {
+            originalRandomJoke();
+            unlockAchievement('joke_teller');
+        };
+
+        // Initialize everything on page load
+        renderAchievements();
+        setTimeout(() => {
+            initSlideshow();
+            initBucketList();
+        }, 500);
     </script>
 </body>
 </html>
