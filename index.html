@@ -211,8 +211,55 @@
             font-weight: bold;
         }
 
-        @media (max-width: 768px) {
-            .video-container { grid-template-columns: 1fr; }
+        /* --- PHOTO ZOOM MODAL --- */
+        .photo-modal {
+            display: none;
+            position: fixed;
+            z-index: 9000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .photo-modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .photo-modal-content {
+            max-width: 90%;
+            max-height: 90%;
+            position: relative;
+        }
+
+        .photo-modal-content img {
+            width: 100%;
+            height: auto;
+            border-radius: 15px;
+            box-shadow: 0 0 50px rgba(47, 129, 247, 0.8);
+        }
+
+        .photo-modal-close {
+            position: absolute;
+            top: -40px;
+            right: 0;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .photo-modal-close:hover {
+            color: var(--accent-primary);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
     </style>
 </head>
@@ -268,18 +315,31 @@
     </section>
 
     <!-- FOOTER WITH BIRTHDAY MESSAGE -->
-    <section style="text-align: center; background: linear-gradient(135deg, #2f81f7 0%, #da3633 100%); border: 2px solid var(--accent-gold);">
-        <h2 style="color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">🎉 HAPPY 19TH BIRTHDAY RAMEZ! 🎉</h2>
-        <p style="font-size: 1.2rem; color: white; margin: 20px 0; font-family: 'Permanent Marker';">
+    <section style="text-align: center; background: linear-gradient(135deg, #2f81f7 0%, #da3633 100%); border: 3px solid var(--accent-gold); padding: 100px 40px;">
+        <h2 style="color: white; text-shadow: 3px 3px 6px rgba(0,0,0,0.8); font-size: 2.5rem;">🎉 HAPPY 19TH BIRTHDAY RAMEZ! 🎉</h2>
+        <p style="font-size: 1.5rem; color: white; margin: 30px 0; font-family: 'Permanent Marker';">
             Thank you for being such an amazing friend. <br>
             Here's to making way more memories together! 🚀
         </p>
-        <p style="font-family: 'Fira Code'; color: #f1e05a; font-weight: bold;">
+        <p style="font-family: 'Fira Code'; color: #f1e05a; font-weight: bold; font-size: 1.1rem; margin: 20px 0;">
             Click anywhere for chaos ↓
         </p>
+        <div style="margin-top: 30px; display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+            <button onclick="celebration()" style="font-size: 1rem; padding: 15px 30px;">🎊 CELEBRATE</button>
+            <button onclick="randomJoke()" style="font-size: 1rem; padding: 15px 30px;">😂 TELL A JOKE</button>
+            <button onclick="crazyMode()" style="font-size: 1rem; padding: 15px 30px;">🤪 CHAOS MODE</button>
+        </div>
     </section>
 
     <div id="scatter-container"></div>
+    
+    <!-- PHOTO ZOOM MODAL -->
+    <div id="photo-modal" class="photo-modal" onclick="closePhotoModal()">
+        <div class="photo-modal-content" onclick="event.stopPropagation()">
+            <span class="photo-modal-close" onclick="closePhotoModal()">&times;</span>
+            <img id="modal-img" src="" alt="Zoomed photo">
+        </div>
+    </div>
     
     <!-- HIDDEN AUDIO ELEMENT -->
     <audio id="background-music" loop style="display: none;">
@@ -361,10 +421,19 @@
         photos.forEach(p => {
             const card = document.createElement('div');
             card.className = 'photo-card';
-            card.innerHTML = `
-                <img src="${p.src}" onerror="this.src='https://via.placeholder.com/250?text=File+Not+Found'">
-                <div class="photo-roast">${p.roast}</div>
-            `;
+            card.style.cursor = 'pointer';
+            const img = document.createElement('img');
+            img.src = p.src;
+            img.onerror = function() { this.src = 'https://via.placeholder.com/250?text=File+Not+Found'; };
+            img.onclick = (e) => {
+                e.stopPropagation();
+                openPhotoModal(p.src);
+            };
+            const roastDiv = document.createElement('div');
+            roastDiv.className = 'photo-roast';
+            roastDiv.textContent = p.roast;
+            card.appendChild(img);
+            card.appendChild(roastDiv);
             photoGrid.appendChild(card);
         });
 
@@ -543,8 +612,8 @@
             document.head.appendChild(styleEl);
         }
 
-        // CLICKABLE EASTER EGGS - Add to specific elements
-        document.querySelectorAll('h1, h2, .roast-front, .video-item').forEach(el => {
+        // CLICKABLE EASTER EGGS - Add to specific elements (EXCLUDE roast cards so they can flip)
+        document.querySelectorAll('h1, h2, .video-item').forEach(el => {
             el.style.cursor = 'pointer';
             el.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -555,6 +624,120 @@
                 }, 200);
             });
         });
+
+        // PHOTO ZOOM MODAL FUNCTIONS
+        function openPhotoModal(src) {
+            const modal = document.getElementById('photo-modal');
+            document.getElementById('modal-img').src = src;
+            modal.classList.add('active');
+            playRandomSound();
+        }
+
+        function closePhotoModal() {
+            document.getElementById('photo-modal').classList.remove('active');
+        }
+
+        // CELEBRATION FUNCTION
+        function celebration() {
+            playRandomSound();
+            confetti();
+            for(let i = 0; i < 5; i++) {
+                setTimeout(() => playRandomSound(), i * 200);
+            }
+            document.body.style.animation = 'shake 0.5s';
+            setTimeout(() => {
+                document.body.style.animation = '';
+            }, 500);
+        }
+
+        // RANDOM JOKE FUNCTION
+        function randomJoke() {
+            const jokes = [
+                "Why did the programmer quit his job? Because he didn't get arrays!",
+                "How many programmers does it take to change a light bulb? None, that's a hardware problem!",
+                "Why do Java developers wear glasses? Because they don't C#!",
+                "Why did Ramez become an engineer? Because he wanted to be well-balanced... it didn't work!",
+                "What's the object-oriented way to become wealthy? Inheritance!",
+                "Why do programmers prefer dark mode? Because light attracts bugs!",
+                "Ramez's code is so bad, Stack Overflow refuses to help!",
+                "I would tell a UDP joke, but you might not get it!"
+            ];
+            const joke = jokes[Math.floor(Math.random() * jokes.length)];
+            
+            const jokeDiv = document.createElement('div');
+            jokeDiv.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: var(--card-bg);
+                border: 3px solid var(--accent-primary);
+                padding: 30px;
+                border-radius: 15px;
+                font-family: 'Permanent Marker';
+                color: var(--accent-gold);
+                font-size: 1.2rem;
+                text-align: center;
+                z-index: 9500;
+                max-width: 500px;
+                animation: slideIn 0.5s ease-out;
+                box-shadow: 0 0 30px rgba(47, 129, 247, 0.8);
+            `;
+            jokeDiv.innerHTML = joke;
+            document.body.appendChild(jokeDiv);
+            
+            playRandomSound();
+            setTimeout(() => {
+                jokeDiv.style.animation = 'fadeOut 0.5s ease-out';
+                setTimeout(() => jokeDiv.remove(), 500);
+            }, 3000);
+        }
+
+        // CHAOS MODE FUNCTION
+        function crazyMode() {
+            const effects = [];
+            for(let i = 0; i < 3; i++) {
+                effects.push(() => {
+                    const colors = ['#2f81f7', '#da3633', '#f1e05a', '#2ea043', '#ff00ff', '#00ffff'];
+                    document.body.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                });
+                effects.push(() => {
+                    document.body.style.animation = 'shake 0.3s';
+                });
+                effects.push(() => playRandomSound());
+            }
+            
+            let effectIndex = 0;
+            const effectInterval = setInterval(() => {
+                if(effectIndex < effects.length) {
+                    effects[effectIndex]();
+                    effectIndex++;
+                } else {
+                    clearInterval(effectInterval);
+                    document.body.style.backgroundColor = 'var(--bg-color)';
+                    document.body.style.animation = '';
+                }
+            }, 200);
+        }
+
+        // Add more keyframe animations
+        const moreStyles = `
+            @keyframes slideIn {
+                from { transform: translate(-50%, -100%); opacity: 0; }
+                to { transform: translate(-50%, -50%); opacity: 1; }
+            }
+            @keyframes fadeOut {
+                from { opacity: 1; }
+                to { opacity: 0; }
+            }
+            @keyframes rainbowBg {
+                0% { filter: hue-rotate(0deg); }
+                100% { filter: hue-rotate(360deg); }
+            }
+        `;
+        const styleEl2 = document.createElement('style');
+        styleEl2.textContent = moreStyles;
+        document.head.appendChild(styleEl2);
 
         // Initialize chaos
         addClickables();
