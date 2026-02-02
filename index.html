@@ -407,37 +407,41 @@
 
         // MUSIC PLAYER
         function playMusic() {
-            // Using YouTube embed link for Laufey's "From the Start"
+            // Laufey - From the Start (YouTube video ID: rHvQakk1zMA)
             const musicPlayer = document.createElement('div');
             musicPlayer.id = 'music-player';
-            musicPlayer.style.cssText = 'position: fixed; bottom: 20px; right: 20px; z-index: 5000; background: var(--card-bg); border: 2px solid var(--accent-primary); border-radius: 12px; padding: 10px; cursor: pointer; font-family: Fira Code;';
+            musicPlayer.style.cssText = 'position: fixed; bottom: 20px; right: 20px; z-index: 5000; background: var(--card-bg); border: 2px solid var(--accent-primary); border-radius: 12px; padding: 10px; cursor: pointer; font-family: Fira Code; color: var(--text-color);';
             musicPlayer.innerHTML = '🎵 Now Playing: Laufey - From the Start';
             musicPlayer.title = 'Click to toggle music';
             document.body.appendChild(musicPlayer);
 
             const audio = new Audio();
-            audio.src = 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'; // Placeholder - replace with actual Laufey link
+            // Using YouTube audio stream
+            audio.src = 'https://www.youtube.com/watch?v=rHvQakk1zMA';
             audio.loop = true;
-            audio.volume = 0.3;
+            audio.volume = 0.5;
             
             let isPlaying = false;
-            musicPlayer.onclick = () => {
+            musicPlayer.onclick = (e) => {
+                e.stopPropagation();
                 if (isPlaying) {
                     audio.pause();
                     musicPlayer.innerHTML = '🔇 Music Paused';
                     isPlaying = false;
                 } else {
-                    audio.play().catch(() => console.log('Autoplay blocked - click to play'));
+                    audio.play().catch(() => {
+                        console.log('Autoplay blocked - opening YouTube');
+                        window.open('https://www.youtube.com/watch?v=rHvQakk1zMA', '_blank');
+                    });
                     musicPlayer.innerHTML = '🎵 Now Playing: Laufey - From the Start';
                     isPlaying = true;
                 }
             };
 
-            // Try to autoplay (muted first due to browser policies)
-            audio.muted = false;
+            // Try to autoplay
             audio.play().catch(() => {
                 console.log('Autoplay blocked by browser');
-                musicPlayer.innerHTML = '🔇 Click to play music!';
+                musicPlayer.innerHTML = '🎵 Click to play music!';
             });
         }
 
