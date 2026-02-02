@@ -412,37 +412,33 @@
             musicPlayer.id = 'music-player';
             musicPlayer.style.cssText = 'position: fixed; bottom: 20px; right: 20px; z-index: 5000; background: var(--card-bg); border: 2px solid var(--accent-primary); border-radius: 12px; padding: 10px; cursor: pointer; font-family: Fira Code; color: var(--text-color);';
             musicPlayer.innerHTML = '🎵 Now Playing: Laufey - From the Start';
-            musicPlayer.title = 'Click to toggle music';
+            musicPlayer.title = 'Click to toggle music or open YouTube';
             document.body.appendChild(musicPlayer);
 
-            const audio = new Audio();
-            // Using YouTube audio stream
-            audio.src = 'https://www.youtube.com/watch?v=rHvQakk1zMA';
-            audio.loop = true;
-            audio.volume = 0.5;
+            // Hidden YouTube iframe for autoplay
+            const youtubeFrame = document.createElement('iframe');
+            youtubeFrame.id = 'youtube-player';
+            youtubeFrame.style.display = 'none';
+            youtubeFrame.src = 'https://www.youtube.com/embed/rHvQakk1zMA?autoplay=1&mute=1&controls=0&loop=1&playlist=rHvQakk1zMA';
+            youtubeFrame.allow = 'autoplay';
+            document.body.appendChild(youtubeFrame);
+
+            let isPlaying = true; // Start as playing (muted autoplay)
             
-            let isPlaying = false;
             musicPlayer.onclick = (e) => {
                 e.stopPropagation();
                 if (isPlaying) {
-                    audio.pause();
+                    youtubeFrame.style.display = 'none';
                     musicPlayer.innerHTML = '🔇 Music Paused';
                     isPlaying = false;
                 } else {
-                    audio.play().catch(() => {
-                        console.log('Autoplay blocked - opening YouTube');
-                        window.open('https://www.youtube.com/watch?v=rHvQakk1zMA', '_blank');
-                    });
+                    youtubeFrame.style.display = 'none'; // Keep hidden but playing
                     musicPlayer.innerHTML = '🎵 Now Playing: Laufey - From the Start';
                     isPlaying = true;
                 }
+                // Also open YouTube in a new tab
+                window.open('https://www.youtube.com/watch?v=rHvQakk1zMA', '_blank');
             };
-
-            // Try to autoplay
-            audio.play().catch(() => {
-                console.log('Autoplay blocked by browser');
-                musicPlayer.innerHTML = '🎵 Click to play music!';
-            });
         }
 
         // RANDOM SOUND GENERATOR
