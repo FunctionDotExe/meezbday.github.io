@@ -267,7 +267,24 @@
         </div>
     </section>
 
+    <!-- FOOTER WITH BIRTHDAY MESSAGE -->
+    <section style="text-align: center; background: linear-gradient(135deg, #2f81f7 0%, #da3633 100%); border: 2px solid var(--accent-gold);">
+        <h2 style="color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">🎉 HAPPY 19TH BIRTHDAY RAMEZ! 🎉</h2>
+        <p style="font-size: 1.2rem; color: white; margin: 20px 0; font-family: 'Permanent Marker';">
+            Thank you for being such an amazing friend. <br>
+            Here's to making way more memories together! 🚀
+        </p>
+        <p style="font-family: 'Fira Code'; color: #f1e05a; font-weight: bold;">
+            Click anywhere for chaos ↓
+        </p>
+    </section>
+
     <div id="scatter-container"></div>
+    
+    <!-- HIDDEN AUDIO ELEMENT -->
+    <audio id="background-music" loop style="display: none;">
+        <source src="https://open.spotify.com/embed/track/5LhCpxpLkpQAn0Nh1VDQ6T" type="audio/mpeg">
+    </audio>
 
     <script>
         const photos = [
@@ -306,6 +323,7 @@
             document.getElementById('opening-curtain').style.transform = 'translateY(-100%)';
             initScatter();
             confetti();
+            playMusic();
         }
 
         function initScatter() {
@@ -386,6 +404,169 @@
         const styleSheet = document.createElement("style");
         styleSheet.innerText = keyframes;
         document.head.appendChild(styleSheet);
+
+        // MUSIC PLAYER
+        function playMusic() {
+            // Using YouTube embed link for Laufey's "From the Start"
+            const musicPlayer = document.createElement('div');
+            musicPlayer.id = 'music-player';
+            musicPlayer.style.cssText = 'position: fixed; bottom: 20px; right: 20px; z-index: 5000; background: var(--card-bg); border: 2px solid var(--accent-primary); border-radius: 12px; padding: 10px; cursor: pointer; font-family: Fira Code;';
+            musicPlayer.innerHTML = '🎵 Now Playing: Laufey - From the Start';
+            musicPlayer.title = 'Click to toggle music';
+            document.body.appendChild(musicPlayer);
+
+            const audio = new Audio();
+            audio.src = 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'; // Placeholder - replace with actual Laufey link
+            audio.loop = true;
+            audio.volume = 0.3;
+            
+            let isPlaying = false;
+            musicPlayer.onclick = () => {
+                if (isPlaying) {
+                    audio.pause();
+                    musicPlayer.innerHTML = '🔇 Music Paused';
+                    isPlaying = false;
+                } else {
+                    audio.play().catch(() => console.log('Autoplay blocked - click to play'));
+                    musicPlayer.innerHTML = '🎵 Now Playing: Laufey - From the Start';
+                    isPlaying = true;
+                }
+            };
+
+            // Try to autoplay (muted first due to browser policies)
+            audio.muted = false;
+            audio.play().catch(() => {
+                console.log('Autoplay blocked by browser');
+                musicPlayer.innerHTML = '🔇 Click to play music!';
+            });
+        }
+
+        // RANDOM SOUND GENERATOR
+        function playRandomSound() {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const now = audioContext.currentTime;
+            
+            const sounds = [
+                () => {
+                    const osc = audioContext.createOscillator();
+                    const gain = audioContext.createGain();
+                    osc.connect(gain);
+                    gain.connect(audioContext.destination);
+                    osc.frequency.value = Math.random() * 800 + 200;
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                    osc.start(now);
+                    osc.stop(now + 0.1);
+                },
+                () => {
+                    const osc = audioContext.createOscillator();
+                    const gain = audioContext.createGain();
+                    osc.connect(gain);
+                    gain.connect(audioContext.destination);
+                    osc.frequency.setValueAtTime(500, now);
+                    osc.frequency.exponentialRampToValueAtTime(100, now + 0.1);
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                    osc.start(now);
+                    osc.stop(now + 0.1);
+                },
+                () => {
+                    const osc = audioContext.createOscillator();
+                    const gain = audioContext.createGain();
+                    osc.connect(gain);
+                    gain.connect(audioContext.destination);
+                    osc.frequency.value = 1000;
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+                    osc.start(now);
+                    osc.stop(now + 0.05);
+                    osc.frequency.value = 600;
+                    osc.start(now + 0.06);
+                    osc.stop(now + 0.11);
+                }
+            ];
+            
+            sounds[Math.floor(Math.random() * sounds.length)]();
+        }
+
+        // ADD CLICKABLE CHAOS EVERYWHERE
+        function addClickables() {
+            document.addEventListener('click', (e) => {
+                // Random chance to trigger fun stuff
+                if (Math.random() < 0.15) {
+                    playRandomSound();
+                    
+                    // Random effect at click location
+                    const effects = [
+                        () => {
+                            // Spinning text
+                            const text = document.createElement('div');
+                            text.textContent = ['😂', '🔥', '💀', '🤡', '🎉', '✨', '🚀', '💯'][Math.floor(Math.random() * 8)];
+                            text.style.cssText = `
+                                position: fixed;
+                                left: ${e.clientX}px;
+                                top: ${e.clientY}px;
+                                font-size: 2rem;
+                                pointer-events: none;
+                                z-index: 9999;
+                                animation: spin-out 1s ease-out forwards;
+                            `;
+                            document.body.appendChild(text);
+                            setTimeout(() => text.remove(), 1000);
+                        },
+                        () => {
+                            // Screen shake
+                            document.body.style.animation = 'none';
+                            setTimeout(() => {
+                                document.body.style.animation = 'shake 0.3s';
+                            }, 10);
+                        },
+                        () => {
+                            // Random color flash
+                            const oldBg = document.body.style.backgroundColor;
+                            document.body.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
+                            setTimeout(() => {
+                                document.body.style.backgroundColor = oldBg;
+                            }, 100);
+                        }
+                    ];
+                    
+                    effects[Math.floor(Math.random() * effects.length)]();
+                }
+            });
+
+            // Add CSS animations
+            const styles = `
+                @keyframes spin-out {
+                    0% { transform: scale(1) rotate(0deg); opacity: 1; }
+                    100% { transform: scale(0) rotate(360deg) translateY(-50px); opacity: 0; }
+                }
+                @keyframes shake {
+                    0%, 100% { transform: translateX(0); }
+                    25% { transform: translateX(-10px); }
+                    75% { transform: translateX(10px); }
+                }
+            `;
+            const styleEl = document.createElement('style');
+            styleEl.textContent = styles;
+            document.head.appendChild(styleEl);
+        }
+
+        // CLICKABLE EASTER EGGS - Add to specific elements
+        document.querySelectorAll('h1, h2, .roast-front, .video-item').forEach(el => {
+            el.style.cursor = 'pointer';
+            el.addEventListener('click', (e) => {
+                e.stopPropagation();
+                playRandomSound();
+                el.style.transform = 'scale(1.1) rotate(5deg)';
+                setTimeout(() => {
+                    el.style.transform = '';
+                }, 200);
+            });
+        });
+
+        // Initialize chaos
+        addClickables();
     </script>
 </body>
 </html>
